@@ -27,7 +27,7 @@
 #include "crc8.hpp"
 
 // Define to enable debugging
-// #define DEBUG
+#define DEBUG
 
 /**! Pins assignments of ESP32 */
 #define IN_BUILT_LED_BLUE 2
@@ -117,8 +117,10 @@ void loop() {
       jdata.ly = PS4.LStickY();
       jdata.rx = PS4.RStickX();
       jdata.ry = PS4.RStickY();
-      jdata.lt = PS4.L2();
-      jdata.rt = PS4.R2();
+      jdata.lt = PS4.L2Value();
+      jdata.rt = PS4.R2Value();
+
+      // Serial.println(jdata.lt);
 
       /**< Parse buttons */
       jdata.buttons = 0;
