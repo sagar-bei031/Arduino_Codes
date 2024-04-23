@@ -13,7 +13,11 @@
 //Make sure you have the right board selected in Tools > Boards
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(115200);
+  Serial.begin(115200); 
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
   Serial.print("MOSI: ");
   Serial.println(MOSI);
   Serial.print("MISO: ");
@@ -21,9 +25,7 @@ void setup() {
   Serial.print("SCK: ");
   Serial.println(SCK);
   Serial.print("SS: ");
-  Serial.println(SS);  
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
+  Serial.println(SS); 
+  
+  delay(100);
 }

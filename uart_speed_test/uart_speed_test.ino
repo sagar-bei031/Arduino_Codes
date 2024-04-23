@@ -23,9 +23,9 @@ void loop() {
     if (n == 1000) {
       t2 = micros();
 
-      double dataPerSec = (double)n / (t2 - t1) * 1000000;
-      Serial.print("Dat per second: ");
-      Serial.println(dataPerSec);
+      double bytesPerSec = (double)n / (t2 - t1) * 1000000;
+      Serial.print("Bytes per second: ");
+      Serial.println(bytesPerSec);
       
       n = 0;
     }
