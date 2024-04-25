@@ -49,22 +49,22 @@
 /************************************************/
 #ifdef PICO
 
-#define LED_Pin 2
-#define RXD2 16
-#define TXD2 17
+#define LED_Pin 25
+#define RXD2 9
+#define TXD2 8
 
 // For SPI mode
-#define BNO08X_CS 5
-#define BNO08X_INT 22
+#define BNO08X_CS 17
+#define BNO08X_INT 5
 
 #ifdef USE_SPI
-#define BNO08X_RESET 21
+#define BNO08X_RESET 2
 #else
 #define BNO08X_RESET -1
 #endif
 
-#define BN008x_P0 20
-#define BN008x_P1 19
+#define BN008x_P0 3
+#define BN008x_P1 4
 
 #endif  // PICO
 

@@ -11,22 +11,21 @@
 // #define USE_I2C
 #define USE_SPI
 
-#define LED_Pin 2
-#define RXD2 16
-#define TXD2 17
+#define LED_Pin 25
+#define RXD2 9
+#define TXD2 8
 
 // For SPI mode, we need a CS pin
-#define BNO08X_CS 5
-#define BNO08X_INT 22
+#define BNO08X_CS 17
+#define BNO08X_INT 5
 
 // For SPI mode, we also need a RESET
 //#define BNO08X_RESET 5
 // but not for I2C or UART
-#define BNO08X_RESET 21  // -1
+#define BNO08X_RESET 2  // -1
 
-// esp32
-#define BN008x_P0 25
-#define BN008x_P1 26
+#define BN008x_P0 3
+#define BN008x_P1 4
 
 #if defined USE_I2C
 const uint8_t p0_value = LOW;
