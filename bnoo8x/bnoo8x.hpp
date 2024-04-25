@@ -25,22 +25,22 @@
 /************************************************/
 #ifdef ESP32
 
-#define LED_Pin 25
-#define RXD2 13
-#define TXD2 12
+#define LED_Pin 2
+#define RXD2 16
+#define TXD2 17
 
 // For SPI mode
-#define BNO08X_CS 17
-#define BNO08X_INT 15
+#define BNO08X_CS 5
+#define BNO08X_INT 22
 #ifdef USE_SPI
 
-#define BNO08X_RESET 14
+#define BNO08X_RESET 21
 #else
 #define BNO08X_RESET -1
 #endif
 
-#define BN008x_P0 18
-#define BN008x_P1 19
+#define BN008x_P0 25
+#define BN008x_P1 26
 
 #endif  // ESP32
 
@@ -63,8 +63,8 @@
 #define BNO08X_RESET -1
 #endif
 
-#define BN008x_P0 25
-#define BN008x_P1 26
+#define BN008x_P0 20
+#define BN008x_P1 19
 
 #endif  // PICO
 
