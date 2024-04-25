@@ -2,13 +2,10 @@
 
 #include <Arduino.h>
 #include <Adafruit_BNO08x.h>
-#include <memory.h>
-#include "crc8.hpp"
 
 /**************************************************
   Toggle Definition for specific implementatiom
 **************************************************/
-// #define DEBUG
 #define ESP32
 // #define PICO
 
@@ -109,15 +106,11 @@ struct vector4f {
   float z;
 };
 
-struct robot_state {
-  vector4f orientation;
-  vector3f velocity;
-  vector3f accel;
-};
-
 void setReport(sh2_SensorId_t reportType);
 
 void setReports(void);
+
+void calibrate(uint16_t n = 20);
 
 void read_data();
 

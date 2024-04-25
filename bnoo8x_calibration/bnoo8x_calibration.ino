@@ -1,15 +1,11 @@
-#include "bnoo8x.hpp"
+#include "bnoo8x_calibration.hpp"
 
 Adafruit_BNO08x bno08x(BNO08X_RESET);
 sh2_SensorValue_t sensorValue;
-robot_state rstate;
-CRC8 crc8(7);
-uint8_t sending_packet[2 + sizeof(rstate)];
+euler_t original_ypr, offset_ypr, calibrated_ypr;
+vector3f angular_velocity;
+vector3f acceleration;
 unsigned long last_tick = 0;
-
-#ifdef DEBUG
-euler_t ypr;  // offset_ypr
-#endif
 
 void setup(void) {
   pinMode(LED_Pin, OUTPUT);
@@ -37,49 +33,54 @@ void setup(void) {
   }
   Serial.println("BNO08x Found!");
 
+  setReport(SH2_ARVR_STABILIZED_RV);
+  Serial.print("Calibrating");
+  delay(100);
+  calibrate(20);
+
   setReports();
+  Serial.println("Reading events");
 }
 
 void loop() {
   unsigned long now = micros();
   unsigned long dt = now - last_tick;
 
-  read_data();
-
+    read_data();
+    
   if (dt > 30000) {
-    sending_packet[0] = START_BYTE;
-    memcpy(sending_packet + 1, (uint8_t*)&rstate, sizeof(rstate));
-    sending_packet[1 + sizeof(rstate)] = crc8.get_hash((uint8_t*)&rstate, sizeof(rstate));
-    Serial.write(sending_packet, sizeof(sending_packet));
 
-    last_tick = now;
-    blick_led(LED_Pin);
+    Serial.print(dt);
 
-#ifdef DEBUG
-    Serial.print(sensorValue.status);
-    Serial.print("\t");  // This is accuracy in the range of 0 to 3
+    Serial.print("\tStatus: ");
+    Serial.print(sensorValue.status);  // This is accuracy in the range of 0 to 3
 
-    Serial.print(ypr.yaw * RAD_TO_DEG);
+    Serial.print("\t ypr \t: ");
+    Serial.print(calibrated_ypr.yaw * RAD_TO_DEG);
     Serial.print("\t");
-    Serial.print(ypr.pitch * RAD_TO_DEG);
+    Serial.print(calibrated_ypr.pitch * RAD_TO_DEG);
     Serial.print("\t");
-    Serial.print(ypr.roll * RAD_TO_DEG);
+    Serial.print(calibrated_ypr.roll * RAD_TO_DEG);
     Serial.print("\t");
 
-    Serial.print(rstate.velocity.x);
+    Serial.print("\t vel \t: ");
+    Serial.print(angular_velocity.x);
     Serial.print("\t");
-    Serial.print(rstate.velocity.y);
+    Serial.print(angular_velocity.y);
     Serial.print("\t");
-    Serial.print(rstate.velocity.z);
+    Serial.print(angular_velocity.z);
     Serial.print("\t");
 
-    Serial.print(rstate.accel.x);
+    Serial.print("\t accel \t: ");
+    Serial.print(acceleration.x);
     Serial.print("\t");
-    Serial.print(rstate.accel.y);
+    Serial.print(acceleration.y);
     Serial.print("\t");
-    Serial.print(rstate.accel.z);
+    Serial.print(acceleration.z);
     Serial.println();
-#endif
+
+    blick_led(LED_Pin);
+    last_tick = now;
   }
 }
 
@@ -122,6 +123,32 @@ void setReports(void) {
   // }
 }
 
+void calibrate(uint16_t n) {
+  offset_ypr.yaw = 0.0f;
+  offset_ypr.pitch = 0.0f;
+  offset_ypr.roll = 0.0f;
+
+  int i = 0;
+  while (i < n) {
+    if (bno08x.wasReset()) {
+      Serial.print("sensor was reset ");
+      setReport(SH2_ARVR_STABILIZED_RV);
+    }
+
+    if (bno08x.getSensorEvent(&sensorValue)) {
+      if (sensorValue.sensorId == SH2_ARVR_STABILIZED_RV) {
+        quaternionToEulerRV(&sensorValue.un.arvrStabilizedRV, &original_ypr);
+        offset_ypr.yaw += original_ypr.yaw;
+        offset_ypr.pitch += original_ypr.pitch;
+        offset_ypr.roll += original_ypr.roll;
+        i++;
+
+        delay(10);
+      }
+    }
+  }
+}
+
 void read_data() {
 
   if (bno08x.wasReset()) {
@@ -133,26 +160,22 @@ void read_data() {
     // in this demo only one report type will be received depending on FAST_MODE define (above)
     switch (sensorValue.sensorId) {
       case SH2_ARVR_STABILIZED_RV:
-#ifdef DEBUG
-        quaternionToEulerRV(&sensorValue.un.arvrStabilizedRV, &ypr);
-#endif
-        rstate.orientation.w = sensorValue.un.arvrStabilizedRV.real;
-        rstate.orientation.x = sensorValue.un.arvrStabilizedRV.i;
-        rstate.orientation.y = sensorValue.un.arvrStabilizedRV.j;
-        rstate.orientation.z = sensorValue.un.arvrStabilizedRV.k;
-
+        quaternionToEulerRV(&sensorValue.un.arvrStabilizedRV, &original_ypr);
+        calibrated_ypr.yaw = original_ypr.yaw - offset_ypr.yaw;
+        calibrated_ypr.pitch = original_ypr.pitch - offset_ypr.pitch;
+        calibrated_ypr.roll = original_ypr.roll - offset_ypr.roll;
         break;
 
       case SH2_GYROSCOPE_CALIBRATED:
-        rstate.velocity.x = sensorValue.un.gyroscope.x;
-        rstate.velocity.y = sensorValue.un.gyroscope.y;
-        rstate.velocity.z = sensorValue.un.gyroscope.z;
+        angular_velocity.x = sensorValue.un.gyroscope.x;
+        angular_velocity.y = sensorValue.un.gyroscope.y;
+        angular_velocity.z = sensorValue.un.gyroscope.z;
         break;
 
       case SH2_LINEAR_ACCELERATION:
-        rstate.accel.x = sensorValue.un.linearAcceleration.x;
-        rstate.accel.y = sensorValue.un.linearAcceleration.y;
-        rstate.accel.z = sensorValue.un.linearAcceleration.z;
+        acceleration.x = sensorValue.un.linearAcceleration.x;
+        acceleration.y = sensorValue.un.linearAcceleration.y;
+        acceleration.z = sensorValue.un.linearAcceleration.z;
         break;
     }
   }
