@@ -1,6 +1,6 @@
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
-#include "crc.hpp"
+#include "crc8.hpp"
 #include <memory.h>
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
@@ -25,7 +25,7 @@ void dmpDataReady() {
   mpuInterrupt = true;
 }
 
-CRC_Hash crc(7);
+CRC8 crc(7);
 float yaw;
 uint8_t transmitting_bytes[6];
 unsigned long last_transmit_tick = 0;
@@ -128,7 +128,7 @@ void loop() {
     if (now - last_transmit_tick >= 10) {
       transmitting_bytes[0] = START_BYTE;
       memcpy((uint8_t*)transmitting_bytes + 1, &yaw, 4);
-      transmitting_bytes[5] = crc.get_Hash(transmitting_bytes + 1, 4);
+      transmitting_bytes[5] = crc.get_hash(transmitting_bytes + 1, 4);
       Serial2.write(transmitting_bytes, 6);
 
       Serial.println(yaw * 180 / PI);
@@ -157,3 +157,4 @@ void error_handler() {
     continue;
   }
 }
+
